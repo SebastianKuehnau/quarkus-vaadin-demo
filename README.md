@@ -1,72 +1,48 @@
-# quarkus-vaadin-demo
+# Quarkus + Vaadin AI Chat Demo
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+A demo application that integrates [Vaadin](https://vaadin.com/) into a [Quarkus](https://quarkus.io/) project to build a streaming AI chat UI using [LangChain4j](https://docs.langchain4j.dev/).
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Prerequisites
 
-## Running the application in dev mode
+- Java 25+
+- An OpenAI-compatible API key
 
-You can run your application in dev mode that enables live coding using:
+## Project Structure
 
-```shell script
+- **`AiChatView`** — A simple AI chat view built with Vaadin's `MessageList` and `MessageInput` components. AI responses are streamed token by token using Mutiny's `Multi` and Vaadin server push.
+- **`VaadinConfig`** — Application-wide Vaadin configuration that enables the Aura theme and server push (`@Push`), which is required for asynchronous UI updates from background threads.
+- **`AiChatService`** — A LangChain4j AI service interface that streams chat responses via `Multi<String>`.
+
+## Configuration
+
+Set your OpenAI API key before starting the application:
+
+```shell
+export OPENAI_API_KEY=your-api-key
+```
+
+The model is configured in `src/main/resources/application.properties`.
+
+## Running in Dev Mode
+
+Start the application with live reload enabled:
+
+```shell
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+The app is available at http://localhost:8080.
 
-## Packaging and running the application
+## Packaging
 
-The application can be packaged using:
-
-```shell script
+```shell
 ./mvnw package
+java -jar target/quarkus-app/quarkus-run.jar
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+## Documentation
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/quarkus-vaadin-demo-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- JDBC Driver - H2 ([guide](https://quarkus.io/guides/datasource)): Connect to the H2 database via JDBC
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
-- LangChain4j OpenAI ([guide](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)): Provides the basic integration with LangChain4j
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
+- [Vaadin Documentation](https://vaadin.com/docs)
+- [Vaadin Quarkus Integration Guide](https://vaadin.com/docs/latest/flow/integrations/quarkus)
+- [Quarkus Documentation](https://quarkus.io/guides/)
+- [Quarkus LangChain4j Documentation](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)
