@@ -1,6 +1,5 @@
 package dev.example.quarkai.ui;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.messages.MessageListItem;
@@ -54,11 +53,11 @@ public class AiChatView extends VerticalLayout {
         assistantMsg.setUserColorIndex(1);
         messageList.addItem(assistantMsg);
 
-        // Use session ID as memory key
-        var sessionId = UI.getCurrent().getSession().getSession().getId();
+        // Each browser tab gets its own chat memory
+        var memoryId = ui.getUIId();
 
         // Stream the AI response and collect the full response for memory
-        chatAiService.chat(sessionId, question).subscribe()
+        chatAiService.chat(memoryId, question).subscribe()
                 .with(
                         token -> ui.access(() -> {
                             assistantMsg.appendText(token);
