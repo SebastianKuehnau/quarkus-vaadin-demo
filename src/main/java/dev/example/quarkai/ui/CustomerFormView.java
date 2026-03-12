@@ -49,24 +49,19 @@ public class CustomerFormView extends VerticalLayout {
         setSizeFull();
     }
 
+    private String sessionId;
+
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
+        sessionId = attachEvent.getUI().getSession().getSession().getId();
+
         // Reactive bindings: fields update automatically when the signal changes
-        var signal = state.getCustomerSignal();
-        ComponentEffect.effect(nameField, () -> {
-            var customer = signal.value();
-            if (customer != null) nameField.setValue(customer.name() != null ? customer.name() : "");
-        });
-        ComponentEffect.effect(cityField, () -> {
-            var customer = signal.value();
-            if (customer != null) cityField.setValue(customer.city() != null ? customer.city() : "");
-        });
-        ComponentEffect.effect(datePicker, () -> {
-            var customer = signal.value();
-            if (customer != null && customer.dateOfBirth() != null) datePicker.setValue(customer.dateOfBirth());
-        });
+        var signal = state.getCustomerSignal(sessionId);
+        ComponentEffect.bind(nameField, signal.map(c -> c != null && c.name() != null ? c.name() : ""), TextField::setValue);
+        ComponentEffect.bind(cityField, signal.map(c -> c != null && c.city() != null ? c.city() : ""), TextField::setValue);
+        ComponentEffect.bind(datePicker, signal.map(c -> c != null ? c.dateOfBirth() : null), DatePicker::setValue);
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {
@@ -80,6 +75,9 @@ public class CustomerFormView extends VerticalLayout {
         var assistantMsg = new MessageListItem("", Instant.now(), "Assistant");
         assistantMsg.setUserColorIndex(1);
         messageList.addItem(assistantMsg);
+
+        // Set session ID so the tool can find the right signal on any thread
+        CustomerFormState.setActiveSessionId(sessionId);
 
         service.assist(question).subscribe()
                 .with(token -> ui.access(() -> {
