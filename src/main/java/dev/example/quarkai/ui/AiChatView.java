@@ -7,7 +7,6 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import dev.example.quarkai.service.AiChatService;
-import jakarta.inject.Inject;
 
 import java.time.Instant;
 
@@ -19,11 +18,10 @@ public class AiChatView extends VerticalLayout {
 
     private final MessageList messageList;
     private final Scroller scroller;
+    private final AiChatService chatAiService;
 
-    @Inject
-    AiChatService chatAiService;
-
-    public AiChatView() {
+    public AiChatView(AiChatService chatAiService) {
+        this.chatAiService = chatAiService;
         setSizeFull();
 
         messageList = new MessageList();
@@ -55,14 +53,17 @@ public class AiChatView extends VerticalLayout {
         assistantMsg.setUserColorIndex(1);
         messageList.addItem(assistantMsg);
 
-        // Stream the AI response: each token arrives asynchronously.
-        // ui.access() is required because the callback runs on a background thread,
-        // and Vaadin UI updates must happen within a UI lock.
-        chatAiService.chat(question).subscribe()
-                .with(token -> ui.access(() -> {
-                    assistantMsg.appendText(token);
-                    scroller.scrollToBottom();
-                }));
+        // Each browser tab gets its own chat memory
+        var memoryId = ui.getUIId();
+
+        // Stream the AI response and collect the full response for memory
+        chatAiService.chat(memoryId, question).subscribe()
+                .with(
+                        token -> ui.access(() -> {
+                            assistantMsg.appendText(token);
+                            scroller.scrollToBottom();
+                        })
+                );
 
         scroller.scrollToBottom();
     }
