@@ -1,7 +1,6 @@
 package dev.example.quarkai.ui;
 
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.ComponentEffect;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
@@ -34,8 +33,11 @@ public class CustomerFormView extends VerticalLayout {
 
     public CustomerFormView() {
         nameField = new TextField("Name");
+        nameField.setReadOnly(true);
         cityField = new TextField("City");
+        cityField.setReadOnly(true);
         datePicker = new DatePicker("Birthday");
+        datePicker.setReadOnly(true);
 
         // Chat-UI
         messageList = new MessageList();
@@ -59,9 +61,9 @@ public class CustomerFormView extends VerticalLayout {
 
         // Reactive bindings: fields update automatically when the signal changes
         var signal = state.getCustomerSignal(sessionId);
-        ComponentEffect.bind(nameField, signal.map(c -> c != null && c.name() != null ? c.name() : ""), TextField::setValue);
-        ComponentEffect.bind(cityField, signal.map(c -> c != null && c.city() != null ? c.city() : ""), TextField::setValue);
-        ComponentEffect.bind(datePicker, signal.map(c -> c != null ? c.dateOfBirth() : null), DatePicker::setValue);
+        nameField.bindValue(signal.map(c -> c != null && c.name() != null ? c.name() : ""), null);
+        cityField.bindValue(signal.map(c -> c != null && c.city() != null ? c.city() : ""), null);
+        datePicker.bindValue(signal.map(c -> c != null ? c.dateOfBirth() : null), null);
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {

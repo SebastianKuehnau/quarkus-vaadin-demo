@@ -21,7 +21,7 @@ public class CustomerFormTools {
             @P("City of residence") String city,
             @P("Date of birth in ISO format yyyy-MM-dd") String dateOfBirth
     ) {
-        state.getCustomerSignal().value(new Customer(name, city, LocalDate.parse(dateOfBirth)));
+        state.getCustomerSignal().set(new Customer(name, city, LocalDate.parse(dateOfBirth)));
         return "Form filled successfully";
     }
 }

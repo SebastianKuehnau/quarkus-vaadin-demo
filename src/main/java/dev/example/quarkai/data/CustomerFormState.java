@@ -1,6 +1,6 @@
 package dev.example.quarkai.data;
 
-import com.vaadin.signals.ValueSignal;
+import com.vaadin.flow.signals.local.ValueSignal;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +20,7 @@ public class CustomerFormState {
     }
 
     public ValueSignal<Customer> getCustomerSignal(String sessionId) {
-        return signals.computeIfAbsent(sessionId, _ -> new ValueSignal<>(Customer.class));
+        return signals.computeIfAbsent(sessionId, _ -> new ValueSignal<>(Customer.empty()));
     }
 
     public ValueSignal<Customer> getCustomerSignal() {
