@@ -1,6 +1,7 @@
 package dev.example.quarkai.service;
 
 import dev.example.quarkai.service.tool.CustomerFormTools;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import io.quarkiverse.langchain4j.RegisterAiService;
@@ -16,5 +17,5 @@ public interface CustomerAiService {
         customer data, use the available tool to populate the form fields directly.
         Always confirm what you've filled in.
     """)
-    Multi<String> assist(@UserMessage String userMessage);
+    Multi<String> assist(@MemoryId Object chatId, @UserMessage String userMessage);
 }

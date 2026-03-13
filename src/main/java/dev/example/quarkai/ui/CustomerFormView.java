@@ -79,7 +79,10 @@ public class CustomerFormView extends VerticalLayout {
         // Set session ID so the tool can find the right signal on any thread
         CustomerFormState.setActiveSessionId(sessionId);
 
-        service.assist(question).subscribe()
+        // Each browser tab gets its own chat memory
+        var memoryId = ui.getUIId();
+
+        service.assist(memoryId, question).subscribe()
                 .with(token -> ui.access(() -> {
                     assistantMsg.appendText(token);
                     scroller.scrollToBottom();
