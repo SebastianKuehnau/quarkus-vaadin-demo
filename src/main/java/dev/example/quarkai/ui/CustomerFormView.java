@@ -67,28 +67,32 @@ public class CustomerFormView extends VerticalLayout {
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {
+        // Get a reference to the UI for thread-safe updates from the streaming callback
         var ui = event.getSource().getUI().orElseThrow();
         var question = event.getValue();
 
+        // Show the user's message immediately
         var userMsg = new MessageListItem(question, Instant.now(), "You");
         userMsg.setUserColorIndex(0);
         messageList.addItem(userMsg);
 
+        // Prepare an empty assistant message that will be filled token by token
         var assistantMsg = new MessageListItem("", Instant.now(), "Assistant");
         assistantMsg.setUserColorIndex(1);
         messageList.addItem(assistantMsg);
 
-        // Set session ID so the tool can find the right signal on any thread
-        CustomerFormState.setActiveSessionId(sessionId);
-
         // Each browser tab gets its own chat memory
         var memoryId = ui.getUIId();
 
-        service.assist(memoryId, question).subscribe()
-                .with(token -> ui.access(() -> {
-                    assistantMsg.appendText(token);
-                    scroller.scrollToBottom();
-                }));
+        // Stream the AI response and collect the full response for memory
+        service.assist(memoryId, sessionId, question)
+                .subscribe()
+                .with(
+                    token -> ui.access(() -> {
+                        assistantMsg.appendText(token);
+                        scroller.scrollToBottom();
+                    })
+                );
 
         scroller.scrollToBottom();
     }

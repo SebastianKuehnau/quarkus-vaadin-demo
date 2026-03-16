@@ -57,13 +57,12 @@ public class AiChatView extends VerticalLayout {
         var memoryId = ui.getUIId();
 
         // Stream the AI response and collect the full response for memory
-        chatAiService.chat(memoryId, question).subscribe()
-                .with(
-                        token -> ui.access(() -> {
-                            assistantMsg.appendText(token);
-                            scroller.scrollToBottom();
-                        })
-                );
+        chatAiService.chat(memoryId, question)
+                .subscribe()
+                .with(token -> ui.access(() -> {
+                    assistantMsg.appendText(token);
+                    scroller.scrollToBottom();
+                }));
 
         scroller.scrollToBottom();
     }
