@@ -51,41 +51,36 @@ public class CustomerFormView extends VerticalLayout {
         setSizeFull();
     }
 
-    private String sessionId;
+    private int memoryId;
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        sessionId = attachEvent.getUI().getSession().getSession().getId();
+        // Use UI ID as unified key for both chat memory and form state
+        memoryId = attachEvent.getUI().getUIId();
 
         // Reactive bindings: fields update automatically when the signal changes
-        var signal = state.getCustomerSignal(sessionId);
+        var signal = state.getCustomerSignal(memoryId);
         nameField.bindValue(signal.map(c -> c != null && c.name() != null ? c.name() : ""), null);
         cityField.bindValue(signal.map(c -> c != null && c.city() != null ? c.city() : ""), null);
         datePicker.bindValue(signal.map(c -> c != null ? c.dateOfBirth() : null), null);
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {
-        // Get a reference to the UI for thread-safe updates from the streaming callback
         var ui = event.getSource().getUI().orElseThrow();
         var question = event.getValue();
 
-        // Show the user's message immediately
         var userMsg = new MessageListItem(question, Instant.now(), "You");
         userMsg.setUserColorIndex(0);
         messageList.addItem(userMsg);
 
-        // Prepare an empty assistant message that will be filled token by token
         var assistantMsg = new MessageListItem("", Instant.now(), "Assistant");
         assistantMsg.setUserColorIndex(1);
         messageList.addItem(assistantMsg);
 
-        // Each browser tab gets its own chat memory
-        var memoryId = ui.getUIId();
-
-        // Stream the AI response and collect the full response for memory
-        service.assist(memoryId, sessionId, question)
+        // memoryId is used for both chat memory and signal state via @ToolMemoryId
+        service.assist(memoryId, question)
                 .subscribe()
                 .with(
                     token -> ui.access(() -> {
