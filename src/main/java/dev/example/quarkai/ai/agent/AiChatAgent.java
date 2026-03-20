@@ -1,4 +1,4 @@
-package dev.example.quarkai.service;
+package dev.example.quarkai.ai.agent;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
@@ -11,7 +11,7 @@ import jakarta.enterprise.context.SessionScoped;
  */
 @SessionScoped
 @RegisterAiService
-public interface AiChatService {
+public interface AiChatAgent {
 
     Multi<String> chat(@MemoryId Object chatId, @UserMessage String question);
 }

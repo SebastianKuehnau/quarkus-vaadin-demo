@@ -1,4 +1,4 @@
-package dev.example.quarkai.service;
+package dev.example.quarkai.ai.config;
 
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;

@@ -1,7 +1,7 @@
-package dev.example.quarkai.service.tool;
+package dev.example.quarkai.ai.tool;
 
 import dev.example.quarkai.data.Customer;
-import dev.example.quarkai.data.CustomerFormState;
+import dev.example.quarkai.ui.aiform.CustomerFormState;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
@@ -10,7 +10,7 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDate;
-import java.util.Objects;
+
 
 @ApplicationScoped
 public class CustomerFormTools {
@@ -27,14 +27,14 @@ public class CustomerFormTools {
             @P("City of residence") String city,
             @P("Date of birth in ISO format yyyy-MM-dd") String dateOfBirth
     ) {
-
         log.debugf("fillCustomerForm called [memoryId=%s, name=%s, city=%s, dateOfBirth=%s]", memoryId, name, city, dateOfBirth);
 
         var dob = dateOfBirth != null ? LocalDate.parse(dateOfBirth) : null;
+
         state.getCustomerSignal(memoryId).update(current -> new Customer(
-                name != null ? name : Objects.requireNonNull(current).name(),
-                city != null ? city : Objects.requireNonNull(current).city(),
-                dob != null ? dob : Objects.requireNonNull(current).dateOfBirth()
+                name != null ? name : current.name(),
+                city != null ? city : current.city(),
+                dob != null ? dob : current.dateOfBirth()
         ));
 
         return "Form filled successfully";

@@ -1,4 +1,4 @@
-package dev.example.quarkai.ui;
+package dev.example.quarkai.ui.aichat;
 
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
@@ -6,21 +6,22 @@ import com.vaadin.flow.component.messages.MessageListItem;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import dev.example.quarkai.service.AiChatService;
+import dev.example.quarkai.ai.agent.AiChatAgent;
+import dev.example.quarkai.ui.MainLayout;
 
 import java.time.Instant;
 
 /**
  * Main chat view that streams AI responses token by token.
  */
-@Route("")
+@Route(value = "", layout = MainLayout.class)
 public class AiChatView extends VerticalLayout {
 
     private final MessageList messageList;
     private final Scroller scroller;
-    private final AiChatService chatAiService;
+    private final AiChatAgent chatAiService;
 
-    public AiChatView(AiChatService chatAiService) {
+    public AiChatView(AiChatAgent chatAiService) {
         this.chatAiService = chatAiService;
         setSizeFull();
 
@@ -36,6 +37,16 @@ public class AiChatView extends VerticalLayout {
 
         add(scroller, messageInput);
         expand(scroller);
+
+        addWelcomeMessage();
+    }
+
+    private void addWelcomeMessage() {
+        var welcome = new MessageListItem(
+                "This is a simple chat. Ask me anything and I'll do my best to help.",
+                Instant.now(), "Assistant");
+        welcome.setUserColorIndex(1);
+        messageList.addItem(welcome);
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {

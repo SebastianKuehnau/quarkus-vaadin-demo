@@ -1,6 +1,7 @@
-package dev.example.quarkai.ui;
+package dev.example.quarkai.ui.aiform;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
@@ -9,27 +10,29 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import dev.example.quarkai.data.CustomerFormState;
-import dev.example.quarkai.service.CustomerAiService;
+import dev.example.quarkai.ai.agent.CustomerAiAgent;
+import dev.example.quarkai.data.Customer;
+import dev.example.quarkai.ui.MainLayout;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
 
-@Route("customer-form")
+@Route(value = "ai-form", layout = MainLayout.class)
 public class CustomerFormView extends VerticalLayout {
 
     private final MessageList messageList;
     private final Scroller scroller;
+    private final TextField nameField;
+    private final TextField cityField;
+    private final DatePicker datePicker;
 
     @Inject
-    CustomerAiService service;
+    CustomerAiAgent service;
 
     @Inject
     CustomerFormState state;
 
-    private final TextField nameField;
-    private final TextField cityField;
-    private final DatePicker datePicker;
+    private int memoryId;
 
     public CustomerFormView() {
         nameField = new TextField("Name");
@@ -39,7 +42,6 @@ public class CustomerFormView extends VerticalLayout {
         datePicker = new DatePicker("Birthday");
         datePicker.setReadOnly(true);
 
-        // Chat-UI
         messageList = new MessageList();
         var input = new MessageInput();
         input.addSubmitListener(this::onSubmit);
@@ -49,46 +51,60 @@ public class CustomerFormView extends VerticalLayout {
         add(nameField, cityField, datePicker, scroller, input);
         setAlignItems(Alignment.CENTER);
         setSizeFull();
+
+        addWelcomeMessage();
     }
 
-    private int memoryId;
+    private void addWelcomeMessage() {
+        var welcome = new MessageListItem(
+                "Tell me about a customer and I'll fill in the form for you. "
+                + "For example: \"Create a customer named John Miller from Berlin, born on March 5th 1990.\"",
+                Instant.now(), "Assistant");
+        welcome.setUserColorIndex(1);
+        messageList.addItem(welcome);
+    }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        // Use UI ID as unified key for both chat memory and form state
+        // Use UI ID as unified key for chat memory, tool state, and signal
         memoryId = attachEvent.getUI().getUIId();
 
-        // Reactive bindings: fields update automatically when the signal changes
         var signal = state.getCustomerSignal(memoryId);
-        nameField.bindValue(signal.map(c -> c != null && c.name() != null ? c.name() : ""), null);
-        cityField.bindValue(signal.map(c -> c != null && c.city() != null ? c.city() : ""), null);
-        datePicker.bindValue(signal.map(c -> c != null ? c.dateOfBirth() : null), null);
+
+        nameField.bindValue(signal.map(Customer::name), null);
+        cityField.bindValue(signal.map(Customer::city), null);
+        datePicker.bindValue(signal.map(Customer::dateOfBirth), null);
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        state.removeCustomerSignal(memoryId);
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {
         var ui = event.getSource().getUI().orElseThrow();
         var question = event.getValue();
 
-        var userMsg = new MessageListItem(question, Instant.now(), "You");
-        userMsg.setUserColorIndex(0);
-        messageList.addItem(userMsg);
+        addMessage(question, "You", 0);
+        var assistantMsg = addMessage("", "Assistant", 1);
 
-        var assistantMsg = new MessageListItem("", Instant.now(), "Assistant");
-        assistantMsg.setUserColorIndex(1);
-        messageList.addItem(assistantMsg);
-
-        // memoryId is used for both chat memory and signal state via @ToolMemoryId
         service.assist(memoryId, question)
                 .subscribe()
-                .with(
-                    token -> ui.access(() -> {
-                        assistantMsg.appendText(token);
-                        scroller.scrollToBottom();
-                    })
-                );
+                .with(token -> ui.access(() -> {
+                    assistantMsg.appendText(token);
+                    scroller.scrollToBottom();
+                }));
 
         scroller.scrollToBottom();
+    }
+
+    private MessageListItem addMessage(String text, String sender, int colorIndex) {
+        var msg = new MessageListItem(text, Instant.now(), sender);
+        msg.setUserColorIndex(colorIndex);
+        messageList.addItem(msg);
+        return msg;
     }
 }

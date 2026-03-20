@@ -1,0 +1,24 @@
+vaadin-grid::part(highlighted-blue) {
+    background: rgb(51, 133, 255, 0.15);
+    font-weight: 500;
+}
+
+vaadin-grid::part(highlighted-green) {
+    background: rgb(34, 175, 73, 0.15);
+    font-weight: 500;
+}
+
+vaadin-grid::part(highlighted-red) {
+    background: rgb(224, 48, 48, 0.15);
+    font-weight: 500;
+}
+
+vaadin-grid::part(highlighted-orange) {
+    background: rgb(255, 165, 0, 0.15);
+    font-weight: 500;
+}
+
+vaadin-grid::part(highlighted-purple) {
+    background: rgb(128, 0, 128, 0.15);
+    font-weight: 500;
+}
