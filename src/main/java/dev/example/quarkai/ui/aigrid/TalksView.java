@@ -16,6 +16,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.signals.Signal;
+import com.vaadin.flow.signals.local.ValueSignal;
 import dev.example.quarkai.ai.agent.AiGridFilterAgent;
 import dev.example.quarkai.data.Talk;
 import dev.example.quarkai.data.TalkRepository;
@@ -25,6 +26,7 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @CssImport(value = "./styles/grid-highlight.css")
 @Route(value = "ai-grid", layout = MainLayout.class)
@@ -43,7 +45,12 @@ public class TalksView extends SplitLayout {
     @Inject
     TalkRepository talkRepository;
 
-    private int memoryId;
+    private final UUID memoryId = UUID.randomUUID();
+
+    // View owns the signals — they are an implementation detail
+    private final ValueSignal<List<Integer>> filterSignal = new ValueSignal<>(List.of());
+    private final ValueSignal<List<Integer>> selectionSignal = new ValueSignal<>(List.of());
+    private final ValueSignal<Map<Integer, String>> highlightSignal = new ValueSignal<>(Map.of());
 
     public TalksView() {
         setOrientation(Orientation.VERTICAL);
@@ -82,17 +89,19 @@ public class TalksView extends SplitLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        memoryId = attachEvent.getUI().getUIId();
 
         var allTalks = talkRepository.findAll();
-        var filterSignal = state.getFilterSignal(memoryId);
-        var selectionSignal = state.getSelectionSignal(memoryId);
-        var highlightSignal = state.getHighlightSignal(memoryId);
+
+        // Register signal setters/updaters with the state bean so tools can update them
+        state.register(memoryId,
+                filterSignal::set,
+                selectionSignal::set,
+                highlightSignal::set);
 
         // Derived signal: filters the full talk list based on all contained signals (here: filterSignal)
         var filteredTalks = Signal.computed(() -> {
             var filterIds = filterSignal.get();
-            if (filterIds.isEmpty()) {
+            if (filterIds == null || filterIds.isEmpty()) {
                 return allTalks;
             }
             return allTalks.stream()
@@ -108,25 +117,31 @@ public class TalksView extends SplitLayout {
         Signal.effect(grid, () -> {
             var selectedIds = selectionSignal.get();
             grid.deselectAll();
-            filteredTalks.peek().stream()
-                    .filter(talk -> selectedIds.contains(talk.id()))
-                    .forEach(grid::select);
+            if (selectedIds != null && !selectedIds.isEmpty()) {
+                filteredTalks.peek().stream()
+                        .filter(talk -> selectedIds.contains(talk.id()))
+                        .forEach(grid::select);
+            }
         });
 
         // Effect: re-renders row part names (CSS highlighting) whenever highlightSignal changes
         Signal.effect(grid, () -> {
             var highlights = highlightSignal.get();
-            grid.setPartNameGenerator(talk ->
-                    highlights.containsKey(talk.id())
-                            ? "highlighted-" + highlights.get(talk.id()) : null
-            );
+            if (highlights == null || highlights.isEmpty()) {
+                grid.setPartNameGenerator(talk -> "");
+            } else {
+                grid.setPartNameGenerator(talk ->
+                        highlights.containsKey(talk.id())
+                                ? "highlighted-" + highlights.get(talk.id()) : ""
+                );
+            }
         });
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        state.remove(memoryId);
+        state.unregister(memoryId);
     }
 
     private Grid<Talk> createTalkGrid() {
@@ -146,9 +161,9 @@ public class TalksView extends SplitLayout {
         messageInput.addSubmitListener(this::onSubmit);
 
         var clearButton = new Button("Clear", _ -> {
-            state.getFilterSignal(memoryId).set(List.of());
-            state.getSelectionSignal(memoryId).set(List.of());
-            state.getHighlightSignal(memoryId).set(Map.of());
+            filterSignal.set(List.of());
+            selectionSignal.set(List.of());
+            highlightSignal.set(Map.of());
             messageList.setItems();
         });
         clearButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -171,7 +186,6 @@ public class TalksView extends SplitLayout {
 
         addMessage(question, "You", 0);
         var assistantMsg = addMessage("", "Assistant", 1);
-        scroller.scrollToBottom();
 
         agent.query(memoryId, question)
                 .subscribe()
@@ -185,6 +199,7 @@ public class TalksView extends SplitLayout {
         var msg = new MessageListItem(text, Instant.now(), sender);
         msg.setUserColorIndex(colorIndex);
         messageList.addItem(msg);
+        scroller.scrollToBottom();
         return msg;
     }
 }

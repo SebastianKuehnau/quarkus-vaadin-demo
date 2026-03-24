@@ -8,6 +8,8 @@ import io.quarkiverse.langchain4j.RegisterAiService;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
+
 @ApplicationScoped
 @RegisterAiService(tools = TalkTools.class)
 public interface AiGridFilterAgent {
@@ -24,5 +26,5 @@ public interface AiGridFilterAgent {
             additive. To clear all highlights, call highlightTalks with 'none'.
             To remove the filter and show all talks again, call filterTalks with 'all'.
             """)
-    Multi<String> query(@MemoryId Object memoryId, @UserMessage String userMessage);
+    Multi<String> query(@MemoryId UUID memoryId, @UserMessage String userMessage);
 }

@@ -1,34 +1,51 @@
 package dev.example.quarkai.ui.aigrid;
 
-import com.vaadin.flow.signals.local.ValueSignal;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @ApplicationScoped
 public class GridQueryState {
 
-    private final ConcurrentHashMap<Object, ValueSignal<List<Integer>>> filterSignals = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Object, ValueSignal<List<Integer>>> selectionSignals = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Object, ValueSignal<Map<Integer, String>>> highlightSignals = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Consumer<List<Integer>>> filterSetters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Consumer<List<Integer>>> selectionSetters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Consumer<Map<Integer, String>>> highlightUpdaters = new ConcurrentHashMap<>();
 
-    public ValueSignal<List<Integer>> getFilterSignal(Object key) {
-        return filterSignals.computeIfAbsent(key, _ -> new ValueSignal<>(List.of()));
+    public void register(UUID key,
+                         Consumer<List<Integer>> filterSetter,
+                         Consumer<List<Integer>> selectionSetter,
+                         Consumer<Map<Integer, String>> highlightUpdater) {
+        filterSetters.put(key, filterSetter);
+        selectionSetters.put(key, selectionSetter);
+        highlightUpdaters.put(key, highlightUpdater);
     }
 
-    public ValueSignal<List<Integer>> getSelectionSignal(Object key) {
-        return selectionSignals.computeIfAbsent(key, _ -> new ValueSignal<>(List.of()));
+    public void unregister(UUID key) {
+        filterSetters.remove(key);
+        selectionSetters.remove(key);
+        highlightUpdaters.remove(key);
     }
 
-    public ValueSignal<Map<Integer, String>> getHighlightSignal(Object key) {
-        return highlightSignals.computeIfAbsent(key, _ -> new ValueSignal<>(Map.of()));
+    public void setFilter(UUID key, List<Integer> ids) {
+        var setter = filterSetters.get(key);
+        if (setter != null) setter.accept(ids);
     }
 
-    public void remove(Object key) {
-        filterSignals.remove(key);
-        selectionSignals.remove(key);
-        highlightSignals.remove(key);
+    public void setSelection(UUID key, List<Integer> ids) {
+        var setter = selectionSetters.get(key);
+        if (setter != null) setter.accept(ids);
+    }
+
+    public void updateHighlight(UUID key, Map<Integer, String> updater) {
+        var u = highlightUpdaters.get(key);
+        if (u != null) u.accept(updater);
+    }
+
+    public void setHighlight(UUID key, Map<Integer, String> highlights) {
+        updateHighlight(key, highlights);
     }
 }
