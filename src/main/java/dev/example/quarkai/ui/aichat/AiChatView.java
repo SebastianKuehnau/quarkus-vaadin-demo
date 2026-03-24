@@ -10,6 +10,7 @@ import dev.example.quarkai.ai.agent.AiChatAgent;
 import dev.example.quarkai.ui.MainLayout;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Main chat view that streams AI responses token by token.
@@ -20,6 +21,7 @@ public class AiChatView extends VerticalLayout {
     private final MessageList messageList;
     private final Scroller scroller;
     private final AiChatAgent chatAiService;
+    private final UUID memoryId = UUID.randomUUID();
 
     public AiChatView(AiChatAgent chatAiService) {
         this.chatAiService = chatAiService;
@@ -63,9 +65,6 @@ public class AiChatView extends VerticalLayout {
         var assistantMsg = new MessageListItem("", Instant.now(), "Assistant");
         assistantMsg.setUserColorIndex(1);
         messageList.addItem(assistantMsg);
-
-        // Each browser tab gets its own chat memory
-        var memoryId = ui.getUIId();
 
         // Stream the AI response and collect the full response for memory
         chatAiService.chat(memoryId, question)
