@@ -15,7 +15,6 @@ import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.signals.Signal;
 import dev.example.quarkai.ai.agent.AiNavigationAgent;
 import dev.example.quarkai.data.Talk;
 import dev.example.quarkai.data.TalkRepository;
@@ -23,6 +22,7 @@ import dev.example.quarkai.ui.MainLayout;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Route(value = "ai-nav", layout = MainLayout.class)
 public class AiNavigationView extends SplitLayout {
@@ -39,7 +39,7 @@ public class AiNavigationView extends SplitLayout {
 
     private final TalkRepository talkRepository;
 
-    private int memoryId;
+    private final UUID memoryId = UUID.randomUUID();
 
     public AiNavigationView(TalkRepository talkRepository) {
         this.talkRepository = talkRepository;
@@ -73,21 +73,16 @@ public class AiNavigationView extends SplitLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
+        var ui = attachEvent.getUI();
 
-        memoryId = attachEvent.getUI().getUIId();
-
-        var tabSignal = state.getTabSignal(memoryId);
-
-        Signal.effect(tabSheet, () -> {
-            var index = tabSignal.get();
-            tabSheet.setSelectedIndex(index);
-        });
+        state.register(memoryId, index -> ui.access(() ->
+                tabSheet.setSelectedIndex(index)));
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        state.remove(memoryId);
+        state.unregister(memoryId);
     }
 
     private VerticalLayout createTalksTab() {

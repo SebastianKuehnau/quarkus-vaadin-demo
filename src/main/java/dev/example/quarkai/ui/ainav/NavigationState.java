@@ -1,20 +1,26 @@
 package dev.example.quarkai.ui.ainav;
 
-import com.vaadin.flow.signals.local.ValueSignal;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @ApplicationScoped
 public class NavigationState {
 
-    private final ConcurrentHashMap<Object, ValueSignal<Integer>> tabSignals = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Consumer<Integer>> tabSetters = new ConcurrentHashMap<>();
 
-    public ValueSignal<Integer> getTabSignal(Object key) {
-        return tabSignals.computeIfAbsent(key, _ -> new ValueSignal<>(0));
+    public void register(UUID key, Consumer<Integer> tabSetter) {
+        tabSetters.put(key, tabSetter);
     }
 
-    public void remove(Object key) {
-        tabSignals.remove(key);
+    public void unregister(UUID key) {
+        tabSetters.remove(key);
+    }
+
+    public void setTab(UUID key, int index) {
+        var setter = tabSetters.get(key);
+        if (setter != null) setter.accept(index);
     }
 }

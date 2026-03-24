@@ -8,6 +8,8 @@ import io.quarkiverse.langchain4j.RegisterAiService;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
+
 @ApplicationScoped
 @RegisterAiService(tools = NavigationTools.class)
 public interface AiNavigationAgent {
@@ -22,5 +24,5 @@ public interface AiNavigationAgent {
             When the user asks what's available, describe all three tabs.
             Be concise and helpful.
             """)
-    Multi<String> chat(@MemoryId Object memoryId, @UserMessage String userMessage);
+    Multi<String> chat(@MemoryId UUID memoryId, @UserMessage String userMessage);
 }
