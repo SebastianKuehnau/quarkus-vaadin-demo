@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 
 @ApplicationScoped
@@ -22,7 +23,7 @@ public class CustomerFormTools {
 
     @Tool("Fills the customer form fields with the given values.")
     public String fillCustomerForm(
-            @ToolMemoryId Object memoryId,
+            @ToolMemoryId UUID memoryId,
             @P("Full name of the customer") String name,
             @P("City of residence") String city,
             @P("Date of birth in ISO format yyyy-MM-dd") String dateOfBirth
@@ -31,11 +32,7 @@ public class CustomerFormTools {
 
         var dob = dateOfBirth != null ? LocalDate.parse(dateOfBirth) : null;
 
-        state.getCustomerSignal(memoryId).update(current -> new Customer(
-                name != null ? name : current.name(),
-                city != null ? city : current.city(),
-                dob != null ? dob : current.dateOfBirth()
-        ));
+        state.updateCustomer(memoryId, new Customer(name, city, dob));
 
         return "Form filled successfully";
     }

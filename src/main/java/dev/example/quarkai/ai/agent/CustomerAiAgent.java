@@ -8,6 +8,8 @@ import io.quarkiverse.langchain4j.RegisterAiService;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
+
 @ApplicationScoped
 @RegisterAiService(tools = CustomerFormTools.class)
 public interface CustomerAiAgent {
@@ -18,5 +20,5 @@ public interface CustomerAiAgent {
         Always confirm what you've filled in.
         Today's date is {{current_date}}.
     """)
-    Multi<String> assist(@MemoryId Object memoryId, @UserMessage String userMessage);
+    Multi<String> assist(@MemoryId UUID memoryId, @UserMessage String userMessage);
 }

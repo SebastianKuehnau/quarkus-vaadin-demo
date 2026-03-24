@@ -11,11 +11,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import dev.example.quarkai.ai.agent.CustomerAiAgent;
-import dev.example.quarkai.data.Customer;
 import dev.example.quarkai.ui.MainLayout;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Route(value = "ai-form", layout = MainLayout.class)
 public class CustomerFormView extends VerticalLayout {
@@ -32,7 +32,7 @@ public class CustomerFormView extends VerticalLayout {
     @Inject
     CustomerFormState state;
 
-    private int memoryId;
+    private final UUID memoryId = UUID.randomUUID();
 
     public CustomerFormView() {
         nameField = new TextField("Name");
@@ -67,21 +67,21 @@ public class CustomerFormView extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
+        var ui = attachEvent.getUI();
 
-        // Use UI ID as unified key for chat memory, tool state, and signal
-        memoryId = attachEvent.getUI().getUIId();
-
-        var signal = state.getCustomerSignal(memoryId);
-
-        nameField.bindValue(signal.map(Customer::name), null);
-        cityField.bindValue(signal.map(Customer::city), null);
-        datePicker.bindValue(signal.map(Customer::dateOfBirth), null);
+        state.register(memoryId, updatedCustomer -> {
+            ui.access(() -> {
+                nameField.setValue(updatedCustomer.name() != null ? updatedCustomer.name() : "");
+                cityField.setValue(updatedCustomer.city() != null ? updatedCustomer.city() : "");
+                datePicker.setValue(updatedCustomer.dateOfBirth());
+            });
+        });
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        state.removeCustomerSignal(memoryId);
+        state.unregister(memoryId);
     }
 
     private void onSubmit(MessageInput.SubmitEvent event) {

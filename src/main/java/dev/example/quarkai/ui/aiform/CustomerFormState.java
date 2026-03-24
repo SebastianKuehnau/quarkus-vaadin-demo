@@ -1,21 +1,27 @@
 package dev.example.quarkai.ui.aiform;
 
-import com.vaadin.flow.signals.local.ValueSignal;
 import dev.example.quarkai.data.Customer;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @ApplicationScoped
 public class CustomerFormState {
 
-    private final ConcurrentHashMap<Object, ValueSignal<Customer>> signals = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Consumer<Customer>> customerUpdaters = new ConcurrentHashMap<>();
 
-    public ValueSignal<Customer> getCustomerSignal(Object key) {
-        return signals.computeIfAbsent(key, _ -> new ValueSignal<>(Customer.empty()));
+    public void register(UUID key, Consumer<Customer> updater) {
+        customerUpdaters.put(key, updater);
     }
 
-    public void removeCustomerSignal(Object key) {
-        signals.remove(key);
+    public void unregister(UUID key) {
+        customerUpdaters.remove(key);
+    }
+
+    public void updateCustomer(UUID key, Customer updatedCustomer) {
+        var u = customerUpdaters.get(key);
+        if (u != null) u.accept(updatedCustomer);
     }
 }
