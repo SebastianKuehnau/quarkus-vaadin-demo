@@ -6,13 +6,20 @@ import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationObserver;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouteConfiguration;
 
+import java.util.Optional;
+
 @CssImport("./styles/main-layout.css")
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout implements AfterNavigationObserver {
+
+    private final H1 title;
 
     public MainLayout() {
-        var title = new H1("Quarkus AI");
+        title = new H1("Quarkus AI");
         title.addClassName("main-layout-title");
 
         addToNavbar(new DrawerToggle(), title);
@@ -23,14 +30,24 @@ public class MainLayout extends AppLayout {
         var nav = new SideNav();
         RouteConfiguration.forSessionScope().getAvailableRoutes().forEach(route -> {
             var path = route.getTemplate();
-            var label = path.isEmpty() ? "Chat" : formatLabel(path);
+            var label = Optional.ofNullable(route.getNavigationTarget().getAnnotation(PageTitle.class))
+                    .map(PageTitle::value)
+                    .orElse(path);
             nav.addItem(new SideNavItem(label, path));
         });
         return nav;
     }
 
-    private String formatLabel(String path) {
-        return path.substring(0, 1).toUpperCase()
-                + path.substring(1).replace("-", " ");
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        var viewTitle = getCurrentPageTitle(event);
+        title.setText(viewTitle.orElse("Quarkus AI"));
+    }
+
+    private Optional<String> getCurrentPageTitle(AfterNavigationEvent event) {
+        return event.getActiveChain().stream()
+                .findFirst()
+                .map(component -> component.getClass().getAnnotation(PageTitle.class))
+                .map(PageTitle::value);
     }
 }

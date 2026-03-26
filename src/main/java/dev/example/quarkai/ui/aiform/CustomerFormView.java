@@ -9,6 +9,7 @@ import com.vaadin.flow.component.messages.MessageListItem;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.example.quarkai.ai.agent.CustomerAiAgent;
 import dev.example.quarkai.ui.MainLayout;
@@ -17,6 +18,9 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.UUID;
 
+// AI-controlled form demo: user chats with the AI, which fills form fields via tool calls.
+// Flow: User message → Agent → Tool call → CustomerFormState → callback → UI update (server push)
+@PageTitle(value = "Customer AI Form")
 @Route(value = "ai-form", layout = MainLayout.class)
 public class CustomerFormView extends VerticalLayout {
 

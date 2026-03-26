@@ -5,6 +5,7 @@ import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.messages.MessageListItem;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.example.quarkai.ai.agent.AiChatAgent;
 import dev.example.quarkai.ui.MainLayout;
@@ -15,6 +16,7 @@ import java.util.UUID;
 /**
  * Main chat view that streams AI responses token by token.
  */
+@PageTitle(value = "AI Chat")
 @Route(value = "", layout = MainLayout.class)
 public class AiChatView extends VerticalLayout {
 

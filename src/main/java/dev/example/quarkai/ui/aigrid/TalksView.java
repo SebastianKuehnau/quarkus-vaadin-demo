@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.signals.Signal;
 import com.vaadin.flow.signals.local.ValueSignal;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @CssImport(value = "./styles/grid-highlight.css")
+@PageTitle(value = "AI Conference Grid")
 @Route(value = "ai-grid", layout = MainLayout.class)
 public class TalksView extends SplitLayout {
 

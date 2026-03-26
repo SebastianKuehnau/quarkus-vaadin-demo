@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.example.quarkai.ai.agent.AiNavigationAgent;
 import dev.example.quarkai.data.Talk;
@@ -24,6 +25,7 @@ import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.UUID;
 
+@PageTitle(value = "AI Navigation")
 @Route(value = "ai-nav", layout = MainLayout.class)
 public class AiNavigationView extends SplitLayout {
 
