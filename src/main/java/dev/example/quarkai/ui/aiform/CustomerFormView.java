@@ -31,11 +31,13 @@ public class CustomerFormView extends VerticalLayout {
     private final DatePicker datePicker;
 
     @Inject
-    CustomerAiAgent service;
+    CustomerAiAgent agent;
 
+    // Shared state bridge between this view and the AI tool (runs on a different thread)
     @Inject
     CustomerFormState state;
 
+    // Unique ID per view instance — used to isolate chat memory and tool callbacks per browser tab
     private final UUID memoryId = UUID.randomUUID();
 
     public CustomerFormView() {
@@ -52,6 +54,7 @@ public class CustomerFormView extends VerticalLayout {
         input.setWidthFull();
 
         scroller = new Scroller(messageList);
+        scroller.setSizeFull();
         add(nameField, cityField, datePicker, scroller, input);
         setAlignItems(Alignment.CENTER);
         setSizeFull();
@@ -68,6 +71,8 @@ public class CustomerFormView extends VerticalLayout {
         messageList.addItem(welcome);
     }
 
+    // Register a callback so the AI tool can push form updates into this UI session.
+    // ui.access() is required because the tool runs on a background thread (server push).
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
@@ -82,6 +87,7 @@ public class CustomerFormView extends VerticalLayout {
         });
     }
 
+    // Clean up on detach to avoid memory leaks and old callbacks
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
@@ -95,20 +101,19 @@ public class CustomerFormView extends VerticalLayout {
         addMessage(question, "You", 0);
         var assistantMsg = addMessage("", "Assistant", 1);
 
-        service.assist(memoryId, question)
+        agent.assist(memoryId, question)
                 .subscribe()
                 .with(token -> ui.access(() -> {
                     assistantMsg.appendText(token);
                     scroller.scrollToBottom();
                 }));
-
-        scroller.scrollToBottom();
     }
 
     private MessageListItem addMessage(String text, String sender, int colorIndex) {
         var msg = new MessageListItem(text, Instant.now(), sender);
         msg.setUserColorIndex(colorIndex);
         messageList.addItem(msg);
+        scroller.scrollToBottom();
         return msg;
     }
 }

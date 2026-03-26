@@ -20,5 +20,6 @@ public interface CustomerAiAgent {
         Always confirm what you've filled in.
         Today's date is {{current_date}}.
     """)
+    // Multi<String> enables token-by-token streaming; memoryId links to per-session chat history
     Multi<String> assist(@MemoryId UUID memoryId, @UserMessage String userMessage);
 }

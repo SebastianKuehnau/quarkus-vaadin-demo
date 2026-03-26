@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 
+// Bridge between AI and UI: the Agent calls this tool, which updates shared state → triggers UI refresh
 @ApplicationScoped
 public class CustomerFormTools {
 
@@ -21,9 +22,11 @@ public class CustomerFormTools {
     @Inject
     CustomerFormState state;
 
+    // @Tool description is sent to the LLM so it knows when/how to call this function
     @Tool("Fills the customer form fields with the given values.")
     public String fillCustomerForm(
             @ToolMemoryId UUID memoryId,
+            // @P descriptions help the LLM map user input to the right parameters
             @P("Full name of the customer") String name,
             @P("City of residence") String city,
             @P("Date of birth in ISO format yyyy-MM-dd") String dateOfBirth
@@ -34,6 +37,7 @@ public class CustomerFormTools {
 
         state.updateCustomer(memoryId, new Customer(name, city, dob));
 
+        // Return value is sent back to the LLM as tool result
         return "Form filled successfully";
     }
 }
