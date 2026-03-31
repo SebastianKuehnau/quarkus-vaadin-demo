@@ -33,9 +33,7 @@ public class CustomerFormTools {
     ) {
         log.debugf("fillCustomerForm called [memoryId=%s, name=%s, city=%s, dateOfBirth=%s]", memoryId, name, city, dateOfBirth);
 
-        var dob = dateOfBirth;
-
-        state.updateCustomer(memoryId, new Customer(name, city, dob));
+        state.updateCustomer(memoryId, new Customer(name, city, dateOfBirth));
 
         // Return value is sent back to the LLM as tool result
         return "Form filled successfully";
