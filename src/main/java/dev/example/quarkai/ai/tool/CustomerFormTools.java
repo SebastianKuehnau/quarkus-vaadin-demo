@@ -29,11 +29,11 @@ public class CustomerFormTools {
             // @P descriptions help the LLM map user input to the right parameters
             @P("Full name of the customer") String name,
             @P("City of residence") String city,
-            @P("Date of birth in ISO format yyyy-MM-dd") String dateOfBirth
+            @P("Date of birth in ISO format yyyy-MM-dd") LocalDate dateOfBirth
     ) {
         log.debugf("fillCustomerForm called [memoryId=%s, name=%s, city=%s, dateOfBirth=%s]", memoryId, name, city, dateOfBirth);
 
-        var dob = dateOfBirth != null ? LocalDate.parse(dateOfBirth) : null;
+        var dob = dateOfBirth;
 
         state.updateCustomer(memoryId, new Customer(name, city, dob));
 
